@@ -1,0 +1,10 @@
+{
+	"stage": "dev",
+	"vars":
+	{
+		"dir": "/home/connor/Documents/Class/Spring_2017",
+		"start_date_here": ""
+	}, 
+	"version": 0.1, 
+	"project_name": "BetterMM"
+}
