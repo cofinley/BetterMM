@@ -3,83 +3,146 @@ import json
 import re
 import datetime
 
+from gmusicapi import Musicmanager
+mm = Musicmanager()
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
-json_file = "{}{}config.json".format(current_dir, os.sep)
+
+json_file = "{}{}{}".format(current_dir, os.sep, "config.json")
+oauth_file = "{}{}{}".format(current_dir, os.sep, "oauth.cred")
+
 date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 date_format = "%Y-%m-%d"
-# TODO insert oauth path (copy from mm.py and alter directory level in string formatting)
 
 
 class Config:
 
 	def __init__(self):
-		self.dir = ""
-		self.start_date = ""
-		self.ext = ["mp3", "flac"]
-		self.unix_time = 0.0
+
 		self.config = {}
+		self.start_unix_time = 0.0
+		self.end_unix_time = 0.0
 		self.load_config()
 		self.pprint()
 
 
-	def pprint(self):
-		print("\nConfig:")
-		print("\tWorking directory: {}".format(self.dir))
-		print("\tStart date: {}".format(self.start_date))
-		print("\t\tUnix timestamp: {}".format(self.unix_time))
-		print("\tFormats being searched for: {}\n".format(self.ext))
+	def get(self, var_name):
+
+		return self.config[var_name]
 
 
-	def update_date(self):
+	def set(self, var_name, value):
 
-		# Do while until user enters <enter> or appropriate date format
-		chosen = False
-		while chosen is False:
-			choice = input("No start date defined, change? (y/N): ")
-			print(choice)
-			if choice in ['', 'N', 'n']:
-				self.start_date = '1970-01-01'
-				chosen = True
-			elif choice in ['y', 'Y']:
-				while not date_pattern.match(self.start_date):
-					input_date = input("Specific date: YYYY-MM-DD: ")
-					if date_pattern.match(input_date):
-						self.start_date = input_date
-						chosen = True
+		self.config[var_name] = value
 
-		self.set_var("start_date", self.start_date)
-
-
-	def get_var(self, var_name, external=None):
-		# Use external for project variables not in vars array (project name, version, etc.)
-		if external:
-			return self.config[var_name]
-
-		return self.config["vars"][var_name]
-
-
-	def set_var(self, var_name, value):
-		self.config["vars"][var_name] = value
-		# External project variables changed manually, not here.
 		with open(json_file, "w") as output_file:
 			json.dump(self.config, output_file)
 
 
 	def load_config(self):
+
+		# Check if config file exists
 		if not os.path.isfile(json_file):
-			with open(json_file, 'w') as j:
-				self.config["vars"] = {}
-				json.dump(self.config, j)
-				j.close()
-			self.dir = input("Full path of music directory: ")
-			self.set_var("dir", self.dir)
-			self.update_date()
-			# TODO insert gmusicapi oauth creation (take from mm.py directly)
-			# TODO maybe move this block under the if statement to a function
+			# No config file, create one and populate with parameters
+			self.create_config()
+
 		else:
+			# Config exists, load into memory
 			with open(json_file, 'r') as j:
 				self.config = json.load(j)
-			self.start_date = self.get_var('start_date')
-			self.dir = self.get_var('dir')
 
-		self.unix_time = datetime.datetime.strptime(self.start_date, date_format).timestamp()
+		# Create oauth credentials file if it doesn't exist
+		if not os.path.isfile(oauth_file):
+			self.create_oauth_token()
+
+		# Get Unix timestamps for date ranges if they exist, otherwise set to None
+		if self.get("start_date") is not "":
+			self.start_unix_time = self.to_timestamp(self.get("start_date"))
+		else:
+			self.start_unix_time = None
+
+		if self.get("end_date") is not "":
+			self.end_unix_time = self.to_timestamp(self.get("end_date"))
+		else:
+			self.end_unix_time = None
+
+
+	def create_config(self):
+		config_dict = {
+				"ext": ["mp3", "flac"],
+				"dir": "",
+				"start_date": "",
+				"end_date": ""
+		}
+		with open(json_file, 'w') as j:
+			json.dump(config_dict, j)
+
+		# Define and save dir & date range
+		self.set("dir", input("Full path of music directory: "))
+		self.create_date_ranges()
+
+
+	def create_oauth_token(self):
+
+		# If no oauth file, create one
+		open(oauth_file, 'w').close()
+
+		# Create oauth token (will save to file)
+		mm.perform_oauth(storage_filepath=oauth_file, open_browser=True)
+		mm.logout()
+
+		self.set("oauth_file", oauth_file)
+
+
+	def create_date_ranges(self):
+
+		# Do while until user enters <enter> or appropriate date format
+		chosen = False
+		while chosen is False:
+			choice = input("No date range defined, change? (y/N): ")
+
+			if choice in ['', 'N', 'n']:
+				# No preference for dates, include all
+				self.set("start_date", "1970-01-01")
+				today = datetime.datetime.today().strftime("%Y-%m-%d")
+				self.set("end_date", today)
+				chosen = True
+
+			elif choice in ['y', 'Y']:
+				# Prompt for start and/or end dates
+				range_choice = ""
+				while range_choice not in ["0", "1", "2"]:
+					range_choice = input("(0) Just start date?\n(1) Just end date?\n(2) Both?\nEnter number here: ")
+				range_choice_idx = int(range_choice)
+
+				# Translate choice to index of list of choices
+				# Indicies match with numbers in the question
+				date_range_choices = [["start_date"], ["end_date"], ["start_date", "end_date"]]
+				date_range_chosen = date_range_choices[range_choice_idx]
+
+				# Go through each key and validate date format inputted by user
+				for key in date_range_chosen:
+					while not date_pattern.match(self.get(key)):
+						input_date = input("Specific date: YYYY-MM-DD: ")
+						if date_pattern.match(input_date):
+							self.set(key, input_date)
+							chosen = True
+
+
+	def pprint(self):
+
+		print("\nConfig:")
+		print("\tWorking directory: {}".format(self.get("dir")))
+		print("\tStart date: {}".format(self.get("start_date")))
+		print("\t\tUnix timestamp: {}".format(self.start_unix_time))
+		print("\tEnd date: {}".format(self.get("end_date")))
+		print("\t\tUnix timestamp: {}".format(self.end_unix_time))
+		print("\tFormats being searched for: {}\n".format(self.get("ext")))
+
+
+	def to_timestamp(self, date: str) -> float:
+		return datetime.datetime.strptime(date, date_format).timestamp()
+
+
+	def from_timestamp(self, timestamp) -> str:
+		return datetime.datetime.fromtimestamp(float(timestamp)).strftime("%Y-%m-%d")
