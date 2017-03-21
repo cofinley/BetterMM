@@ -1,5 +1,6 @@
 *.pyc
-*/*.pyc
 *.ipynb
 .vscode/
 *.json
+.idea/
+config/__pycache__/

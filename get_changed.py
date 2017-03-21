@@ -1,36 +1,32 @@
 import os
-import itertools
-import datetime
 import glob
 
 from config import config
+conf = config.Config()
 
-def parse(gen):
-	for i in gen:
-		yield i
-
-date_format = "%Y-%m-%d"
-
-filepath = config.get_var("dir")
-if filepath == "":
-	filepath=input("Where is your directory? (full path): ")
-ext = "md"
-given_date = config.get_var("start_date_here") or "1970-01-01"
-
-unix_time = float(datetime.datetime.strptime(given_date, date_format).strftime("%S"))
-
-# recursive argument only appears in python 3.5+
-files = glob.iglob(filepath + "**." + ext, recursive=True)
-
-parse(files)
-
-print("**************************************")
 
 def check_date(f):
-	if os.path.getctime(f) > unix_time:
-		return True
+	return os.path.getctime(f) >= conf.unix_time
 
-new_files = itertools.takewhile(check_date, files)
 
-for i in new_files:
-	print(i)
+def get_new_files():
+	# Go through listings for each type of extension
+	for ext in conf.ext:
+
+		print("Checking for {}'s...".format(ext))
+		print("\tPattern: {}**{}*.{}\n".format(conf.dir, os.sep, ext))
+		# recursive argument only appears in python 3.5+
+		files = glob.iglob("{}**{}*.{}".format(conf.dir, os.sep, ext), recursive=True)
+
+		new_files = filter(check_date, files)
+
+		upload(new_files)
+
+
+def upload(itr):
+	# TODO gmusicapi code here
+	# TODO update start_date in config to today's date after upload
+	for i in itr:
+		print(i)
+
+newer_files_itr = get_new_files()
