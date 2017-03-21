@@ -1,8 +1,8 @@
 # Better MM
 
-## A better* Google Music Manager
+A Better* Google Music Manager
 
-### Process
+## Process
 
 1. User feeds in music dir
 2. User feeds in date since last added (if any)
