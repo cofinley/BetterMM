@@ -14,7 +14,7 @@ class Config:
 	def __init__(self):
 		self.dir = ""
 		self.start_date = ""
-		self.ext = ["mp3", "flac", "md"]
+		self.ext = ["mp3", "flac"]
 		self.unix_time = 0.0
 		self.config = {}
 		self.load_config()

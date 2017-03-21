@@ -1,12 +1,15 @@
 # Better MM
 
-## A better Google Music Manager
+## A better* Google Music Manager
 
 ### Process
 
-- Recursively search through file structure for files that:
-	- End in .mp3 or .flac
-	- Have a modification date (maybe import date?) after given timestamp
-
-- Build list of these files with absolute filepaths
-- Feed list into gmusicapi from github (music manager api)
+1. User feeds in music dir
+2. User feeds in date since last added (if any)
+3. Program lazy searches through dir recursively for flacs, mp3s
+    i. Iterator built
+4. Program only takes files which are newer (if 'date added' given)
+    i. Otherwise all files considered
+5. Repeat steps 3 and 4 for each dir given
+6. Pipe iterator(s) into gmusic music manager upload
+    i. Happens after oauth with google account

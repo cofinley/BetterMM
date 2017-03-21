@@ -1,5 +1,0 @@
-1. user feeds in music dir(s)
-2. user feeds in date since last added (if any)
-3. program lazy searches through dir recursively
-4. program only takes files which are new (if 'date added' given)
-5. repeat steps 3 and 4 for each dir given
