@@ -35,6 +35,9 @@ def get_new_files():
 
 if __name__ == '__main__':
 	# Find newer files and upload them
+
+	# TODO maybe iterate of ext here and have the function return so it can be passed to upload()
+	# 	would be more functional that way instead of nesting upload function inside the first function
 	get_new_files()
 
 	# Update conf's start date to today

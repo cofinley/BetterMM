@@ -7,6 +7,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 json_file = "{}{}config.json".format(current_dir, os.sep)
 date_pattern = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 date_format = "%Y-%m-%d"
+# TODO insert oauth path (copy from mm.py and alter directory level in string formatting)
 
 
 class Config:
@@ -73,6 +74,8 @@ class Config:
 			self.dir = input("Full path of music directory: ")
 			self.set_var("dir", self.dir)
 			self.update_date()
+			# TODO insert gmusicapi oauth creation (take from mm.py directly)
+			# TODO maybe move this block under the if statement to a function
 		else:
 			with open(json_file, 'r') as j:
 				self.config = json.load(j)
