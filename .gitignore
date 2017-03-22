@@ -7,3 +7,4 @@ config/__pycache__/
 /config/oauth.cred
 /config/config.json
 /venv/
+/logs/

@@ -17,8 +17,10 @@ date_format = "%Y-%m-%d"
 
 class Config:
 
-	def __init__(self):
+	def __init__(self, verbose=False):
 
+		# TODO force prompts if verbose
+		self.verbose = verbose
 		self.config = {}
 		self.start_unix_time = 0.0
 		self.end_unix_time = 0.0
@@ -99,7 +101,8 @@ class Config:
 				"ext": ["mp3", "flac"],
 				"dir": "",
 				"start_date": "",
-				"end_date": ""
+				"end_date": "",
+				"future_uploads": []
 		}
 		with open(json_file, 'w') as j:
 			json.dump(config_dict, j)
