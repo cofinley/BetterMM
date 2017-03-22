@@ -26,12 +26,28 @@ class Config:
 		self.pprint()
 
 
-	def get(self, var_name):
+	def get(self, var_name: str) -> str:
+		"""
+		Get config setting from memory.
+
+		Args:
+			var_name: string of key to get from config
+
+		Returns:
+			string of value of key from config
+		"""
 
 		return self.config[var_name]
 
 
 	def set(self, var_name, value):
+		"""
+		Save new value to key in config in memory and json file.
+
+		Args:
+			var_name: string of config key
+			value: string of new value
+		"""
 
 		self.config[var_name] = value
 
@@ -40,6 +56,13 @@ class Config:
 
 
 	def load_config(self):
+		"""
+		Load json config into memory if the file exists. If not, create one.
+
+		Check for Google Oauth too.
+		Bring human-readable date ranges from config into class member variable as Unix timestamps.
+		Void any date endpoints not used.
+		"""
 
 		# Check if config file exists
 		if not os.path.isfile(json_file):
@@ -68,6 +91,10 @@ class Config:
 
 
 	def create_config(self):
+		"""
+		Generate new config file. Input music directory and date ranges.
+		"""
+
 		config_dict = {
 				"ext": ["mp3", "flac"],
 				"dir": "",
@@ -84,6 +111,9 @@ class Config:
 
 	def create_oauth_token(self):
 
+		"""
+		Generate oauth token from signing into Google in the browser.
+		"""
 		# If no oauth file, create one
 		open(oauth_file, 'w').close()
 
@@ -96,6 +126,9 @@ class Config:
 
 	def create_date_ranges(self):
 
+		"""
+		Prompt user for date ranges of music files to be added. Saves to config json.
+		"""
 		# Do while until user enters <enter> or appropriate date format
 		chosen = False
 		while chosen is False:
@@ -131,6 +164,9 @@ class Config:
 
 	def pprint(self):
 
+		"""
+		Pretty print config.
+		"""
 		print("\nConfig:")
 		print("\tWorking directory: {}".format(self.get("dir")))
 		print("\tStart date: {}".format(self.get("start_date")))
@@ -141,8 +177,27 @@ class Config:
 
 
 	def to_timestamp(self, date: str) -> float:
-		return datetime.datetime.strptime(date, date_format).timestamp()
+		"""
+		Convert YYYY-MM-DD to Unix timestamp.
+
+		Args:
+			date: string in format of YYYY-MM-DD
+
+		Returns:
+			timestamp: Unix timestamp float
+		"""
+		timestamp = datetime.datetime.strptime(date, date_format).timestamp()
+		return timestamp
 
 
 	def from_timestamp(self, timestamp) -> str:
-		return datetime.datetime.fromtimestamp(float(timestamp)).strftime("%Y-%m-%d")
+		"""
+		Convert from Unix timestamp to YYYY-MM-DD.
+		Args:
+			timestamp: float or string of float of Unix timestamp
+
+		Returns:
+			str_date: string in date format of YYYY-MM-DD
+		"""
+		str_date = datetime.datetime.fromtimestamp(float(timestamp)).strftime("%Y-%m-%d")
+		return str_date

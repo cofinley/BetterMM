@@ -6,21 +6,43 @@ import music_manager
 from config.config import Config
 conf = Config()
 
+start = conf.start_unix_time
+end = conf.end_unix_time
 
-def check_date(f):
-	# TODO different cases for date ranges
-	return os.path.getctime(f) >= conf.get("start_unix_time")
+
+def check_date(f: object) -> bool:
+
+	""" Function used to filter files by time range.
+	Time is based on when files wered copied to dir
+	:param f: file from iterator
+	:return: True if file falls within date ranges"""
+
+	if start and end:
+		# Range: [start, end)
+		return start <= os.path.getctime(f) < end
+	else:
+		if start and not end:
+			# Range: [start, inf)
+			return start <= os.path.getctime(f)
+		elif end and not start:
+			# Range: (inf, end)
+			return os.path.getctime(f) < end
+
 
 
 def get_new_files():
-	# Go through listings for each type of extension
+	"""
+	For every music file extension, find all files in the given directory that were added
+	in the configured date range.
+	"""
+
+	music_dir = conf.get("dir")
 	for idx, ext in enumerate(conf.get("ext")):
 
-		# TODO replace conf.key with conf.get("key")
 		print("({}/{}) Checking for {}'s...".format(idx, len(ext), ext))
-		print("\tPattern: {}**{}*.{}\n".format(conf.dir, os.sep, ext))
+		print("\tPattern: {}**{}*.{}\n".format(music_dir, os.sep, ext))
 		# recursive argument only appears in python 3.5+
-		files = glob.iglob("{}**{}*.{}".format(conf.dir, os.sep, ext), recursive=True)
+		files = glob.iglob("{}**{}*.{}".format(music_dir, os.sep, ext), recursive=True)
 
 		new_files = filter(check_date, files)
 		# Create duplicate iterators. One for upload, one for showing to user
@@ -35,7 +57,11 @@ def get_new_files():
 		else:
 			print("None Found")
 
-if __name__ == '__main__':
+
+def main():
+	"""
+	Main logic.
+	"""
 	# Find newer files and upload them
 
 	# TODO Add args to allow running without prompts (-v or something)
@@ -50,3 +76,6 @@ if __name__ == '__main__':
 	today = datetime.datetime.today().strftime("%Y-%m-%d")
 	conf.set("start_date", today)
 
+
+if __name__ == '__main__':
+	main()
