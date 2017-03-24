@@ -4,7 +4,7 @@ import re
 import datetime
 
 from gmusicapi import Musicmanager
-mm = Musicmanager()
+mm = Musicmanager(debug_logging=False)
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -31,8 +31,6 @@ class Config:
 		self.load_config()
 		self.check_oauth()
 		self.init_unix_timestamps()
-
-		self.pprint()
 
 
 	def get(self, var_name: str) -> str:
@@ -75,13 +73,13 @@ class Config:
 			# No config file, create new config and populate with parameters
 			self.create_config()
 
-		if self.verbose:
-			self.create_date_ranges()
-
 		else:
 			# Config exists, load config json into memory
 			with open(json_file, 'r') as j:
 				self.config = json.load(j)
+
+		if self.verbose:
+			self.create_date_ranges()
 
 
 	def create_config(self):
@@ -174,7 +172,7 @@ class Config:
 					self.set(key, input_date)
 
 		print("The date range will be reset after the uploading finishes.")
-		print("If you would like custom date ranges next time, run the script with the '-v' or '--verbose' argument")
+		print("If you would like custom date ranges next time, run the script with the '-v' or '--verbose' argument\n")
 
 
 	def pprint(self):

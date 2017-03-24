@@ -20,24 +20,16 @@ def upload(itr: iter, conf: object) -> tuple:
 				{'<filepath>': '<reason, eg ALREADY_EXISTS>'}    # not uploaded
 			)
 	"""
-	mm = Musicmanager()
+	mm = Musicmanager(debug_logging=False)
 
 	oauth_path = conf.get("oauth_file")
 	is_logged_in = mm.login(oauth_credentials=oauth_path)
 	if is_logged_in:
-		sure = False
-		if conf.verbose:
-			is_ready = input("\n\nSure you're ready to upload? (y/N): ")
-			if is_ready is 'y' or 'Y':
-				sure = True
-			else:
-				return False
-		if not conf.verbose or sure:
-			print("Uploading (may take awhile)...")
-			result = mm.upload(itr)
-			print("Done.")
-			mm.logout()
-			return result
+		print("Uploading (may take awhile)...")
+		result = mm.upload(itr)
+		print("Done.")
+		mm.logout()
+		return result
 
 
 def parse_result(result: tuple, conf: object) -> None:

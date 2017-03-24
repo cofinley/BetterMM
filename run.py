@@ -10,16 +10,7 @@ import music_manager
 from config.config import Config
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-
-# Create timestamped log file which pipes from print() using stdout
 today = datetime.datetime.today().strftime("%Y-%m-%d")
-temp = sys.stdout
-log_file = "{}{}{}{}{}.log".format(current_dir,
-									os.sep,
-									"logs",
-									os.sep,
-									today)
-sys.stdout = codecs.open(log_file, 'w', "utf-8")
 
 
 def check_verbosity() -> bool:
@@ -45,9 +36,23 @@ is_verbose = check_verbosity()
 if is_verbose:
 	print("Mode: verbose")
 	conf = Config(verbose=True)
+
 else:
 	print("Mode: non-verbose (no prompts)")
 	conf = Config()
+
+# Create timestamped log file which pipes from print() using stdout
+# Called after config constructor in case of user prompts which require regular printing
+temp = sys.stdout
+log_file = "{}{}{}{}{}.log".format(current_dir,
+									os.sep,
+									"logs",
+									os.sep,
+									today)
+sys.stdout = codecs.open(log_file, 'w', "utf-8")
+
+# Start log file with current config settings listed
+conf.pprint()
 
 start = conf.start_unix_time
 end = conf.end_unix_time
