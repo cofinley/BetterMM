@@ -1,19 +1,16 @@
 # Better MM
 
-### A better* Google Music Manager
+### A Better* Google Music Manager
 
 ## Process
 
-1. User feeds in music dr
-2. User feeds in date since last added (if any)
-3. Program lazy searches through dir recursively for flacs, mp3s
-    - Iterator built
-4. Program only takes files which are newer (if 'date added' given)
-    - Otherwise all files considered
-5. Repeat steps 3 and 4 for each dir given
-6. Pipe iterator(s) into gmusic music manager upload
-    - Happens after oauth with google account
-
+1. Enter in music directory
+2. Enter in a date range of music added (if desired)
+    - How far back and how recent files were added to directory
+3. Program searches for flacs, mp3s
+    - Only takes files which are within the given date range
+        - If no range given, all files considered
+4. Upload to Google Music
 
 \* says me
 
