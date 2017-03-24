@@ -16,15 +16,22 @@ date_format = "%Y-%m-%d"
 
 
 class Config:
+	"""
+	Configuration class that gets/sets variables used throughout the utility.
+	"""
 
 	def __init__(self, verbose=False):
 
-		# TODO force prompts if verbose
 		self.verbose = verbose
+
 		self.config = {}
 		self.start_unix_time = 0.0
 		self.end_unix_time = 0.0
+
 		self.load_config()
+		self.check_oauth()
+		self.init_unix_timestamps()
+
 		self.pprint()
 
 
@@ -38,7 +45,6 @@ class Config:
 		Returns:
 			string of value of key from config
 		"""
-
 		return self.config[var_name]
 
 
@@ -50,7 +56,6 @@ class Config:
 			var_name: string of config key
 			value: string of new value
 		"""
-
 		self.config[var_name] = value
 
 		with open(json_file, "w") as output_file:
@@ -61,59 +66,56 @@ class Config:
 		"""
 		Load json config into memory if the file exists. If not, create one.
 
-		Check for Google Oauth too.
-		Bring human-readable date ranges from config into class member variable as Unix timestamps.
-		Void any date endpoints not used.
+			Check for Google Oauth too.
+			Bring human-readable date ranges from config into class member variable as Unix timestamps.
+			Void any date endpoints not used.
 		"""
-
 		# Check if config file exists
 		if not os.path.isfile(json_file):
-			# No config file, create one and populate with parameters
+			# No config file, create new config and populate with parameters
 			self.create_config()
 
+		if self.verbose:
+			self.create_date_ranges()
+
 		else:
-			# Config exists, load into memory
+			# Config exists, load config json into memory
 			with open(json_file, 'r') as j:
 				self.config = json.load(j)
-
-		# Create oauth credentials file if it doesn't exist
-		if not os.path.isfile(oauth_file):
-			self.create_oauth_token()
-
-		# Get Unix timestamps for date ranges if they exist, otherwise set to None
-		if self.get("start_date") is not "":
-			self.start_unix_time = self.to_timestamp(self.get("start_date"))
-		else:
-			self.start_unix_time = None
-
-		if self.get("end_date") is not "":
-			self.end_unix_time = self.to_timestamp(self.get("end_date"))
-		else:
-			self.end_unix_time = None
 
 
 	def create_config(self):
 		"""
 		Generate new config file. Input music directory and date ranges.
 		"""
-
-		config_dict = {
+		self.config = {
 				"ext": ["mp3", "flac"],
 				"dir": "",
 				"start_date": "",
 				"end_date": "",
-				"future_uploads": []
+				"failed_uploads": []
 		}
+
 		with open(json_file, 'w') as j:
-			json.dump(config_dict, j)
+			json.dump(self.config, j)
 
 		# Define and save dir & date range
 		self.set("dir", input("Full path of music directory: "))
-		self.create_date_ranges()
+		self.prompt_date_ranges()
+
+
+	def check_oauth(self):
+		"""
+		Create oauth credentials file if it doesn't exist.
+		"""
+		if not os.path.isfile(oauth_file):
+			self.create_oauth_token()
+		else:
+			# Oauth file exists, make sure oauth path in config file
+			self.set("oauth_file", oauth_file)
 
 
 	def create_oauth_token(self):
-
 		"""
 		Generate oauth token from signing into Google in the browser.
 		"""
@@ -127,8 +129,7 @@ class Config:
 		self.set("oauth_file", oauth_file)
 
 
-	def create_date_ranges(self):
-
+	def prompt_date_ranges(self):
 		"""
 		Prompt user for date ranges of music files to be added. Saves to config json.
 		"""
@@ -145,30 +146,40 @@ class Config:
 				chosen = True
 
 			elif choice in ['y', 'Y']:
-				# Prompt for start and/or end dates
-				range_choice = ""
-				while range_choice not in ["0", "1", "2"]:
-					range_choice = input("(0) Just start date?\n(1) Just end date?\n(2) Both?\nEnter number here: ")
-				range_choice_idx = int(range_choice)
+				self.create_date_ranges()
+				chosen = True
 
-				# Translate choice to index of list of choices
-				# Indicies match with numbers in the question
-				date_range_choices = [["start_date"], ["end_date"], ["start_date", "end_date"]]
-				date_range_chosen = date_range_choices[range_choice_idx]
 
-				# Go through each key and validate date format inputted by user
-				for key in date_range_chosen:
-					while not date_pattern.match(self.get(key)):
-						input_date = input("Specific date: YYYY-MM-DD: ")
-						if date_pattern.match(input_date):
-							self.set(key, input_date)
-							chosen = True
+	def create_date_ranges(self):
+		"""
+		Define start and end dates to look for music files (based on creation/copy time).
+		Called when config first created or scipt called with verbose arguments (-v, --verbose)
+		"""
+		range_choice = ""
+		while range_choice not in ["1", "2", "3"]:
+			range_choice = input("(1) Just start date?\n(2) Just end date?\n(3) Both?\nEnter number here: ")
+		range_choice_idx = int(range_choice) - 1
+
+		# Translate choice to index of list of choices
+		# Indicies match with numbers in the question
+		date_range_choices = [["start_date"], ["end_date"], ["start_date", "end_date"]]
+		date_range_chosen = date_range_choices[range_choice_idx]
+
+		# Go through each key and validate date format inputted by user
+		for key in date_range_chosen:
+			input_date = ""
+			while not date_pattern.match(input_date):
+				input_date = input("{}: YYYY-MM-DD: ".format(key.replace("_", " ").title()))
+				if date_pattern.match(input_date):
+					self.set(key, input_date)
+
+		print("The date range will be reset after the uploading finishes.")
+		print("If you would like custom date ranges next time, run the script with the '-v' or '--verbose' argument")
 
 
 	def pprint(self):
-
 		"""
-		Pretty print config.
+		Pretty print config variables.
 		"""
 		print("\nConfig:")
 		print("\tWorking directory: {}".format(self.get("dir")))
@@ -179,7 +190,19 @@ class Config:
 		print("\tFormats being searched for: {}\n".format(self.get("ext")))
 
 
-	def to_timestamp(self, date: str) -> float:
+	def init_unix_timestamps(self):
+		"""
+		Get Unix timestamps for date ranges if they exist, otherwise set to None.
+		"""
+		start = self.get("start_date")
+		self.start_unix_time = self.to_timestamp(start) if start else None
+
+		end = self.get("end_date")
+		self.end_unix_time = self.to_timestamp(end) if end else None
+
+
+	@staticmethod
+	def to_timestamp(date: str) -> float:
 		"""
 		Convert YYYY-MM-DD to Unix timestamp.
 
@@ -193,7 +216,8 @@ class Config:
 		return timestamp
 
 
-	def from_timestamp(self, timestamp) -> str:
+	@staticmethod
+	def from_timestamp(timestamp) -> str:
 		"""
 		Convert from Unix timestamp to YYYY-MM-DD.
 		Args:

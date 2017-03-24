@@ -1,19 +1,16 @@
 import os
 from gmusicapi import Musicmanager
 
-from config.config import Config
-conf = Config()
-
 current_dir = os.path.dirname(os.path.realpath(__file__))
-oauth_path = conf.get("oauth_file")
 
 
-def upload(itr: iter) -> tuple:
+def upload(itr: iter, conf: object) -> tuple:
 	"""
 	Takes iterable of music files and uploads all files to Google Music in 320 kbps mp3
 
 	Args:
 		itr: iterable of absolute file paths to songs of a single extension (mp3 or flac, etc.)
+		conf: config object from run.py
 
 	Returns:
 		result: tuple of three dictionaries
@@ -25,45 +22,70 @@ def upload(itr: iter) -> tuple:
 	"""
 	mm = Musicmanager()
 
+	oauth_path = conf.get("oauth_file")
 	is_logged_in = mm.login(oauth_credentials=oauth_path)
 	if is_logged_in:
-		# TODO only prompt if script not launched with verbose argument
-		# is_ready = input("\n\nSure you're ready to upload? (y/N): ")
-		# if is_ready is 'y' or 'Y':
-		print("Uploading (may take awhile)...")
-		# TODO catch UnicodeEncodeError somehow
-		# 	It's happening in gmusicapi with Japanese and full width chars in music file paths
-		result = mm.upload(itr)
-		print("Done!")
-		mm.logout()
-		return result
+		sure = False
+		if conf.verbose:
+			is_ready = input("\n\nSure you're ready to upload? (y/N): ")
+			if is_ready is 'y' or 'Y':
+				sure = True
+			else:
+				return False
+		if not conf.verbose or sure:
+			print("Uploading (may take awhile)...")
+			result = mm.upload(itr)
+			print("Done.")
+			mm.logout()
+			return result
 
 
-def parse_result(result: tuple) -> None:
+def parse_result(result: tuple, conf: object) -> None:
 	"""
 	Takes readout from upload payload and parses what was uploaded, matched, and not uploaded
 
 	Args:
 		result: tuple of three dictionaries (see upload function docstring for details)
+		conf: config object from run.py
 	"""
-	future_uploads = list(conf.get("future_uploads"))
-	print("Parsing readout...")
-	print("Uploaded:")
+	failed_uploads = list(conf.get("failed_uploads"))
+	print("Result:")
+	print("\n\tUploaded:")
 	for uploaded in result[0]:
-		print("\t" + uploaded)
-	print("Matched:")
+		print("\t\t" + uploaded)
+	print("\n\tMatched:")
 	for matched in result[1]:
-		print("\t" + matched)
-	print("Not uploaded:")
+		print("\t\t" + matched)
+	print("\n\tNot uploaded:")
 	for n_uploaded in result[2]:
-		print("\t" + n_uploaded)
+		print("\t\t" + n_uploaded)
 		reason = result[2][n_uploaded]
-		print("\t\tReason: {}".format(reason))
 		if "ALREADY_EXISTS" not in reason:
 			# Song failed to upload but not because it already existed in google music
 			# stage for next upload
-			future_uploads.append(n_uploaded)
+			print("\t\t\tReason: {}".format(reason))
+			failed_uploads.append(n_uploaded)
+		else:
+			print("\t\t\tReason: Already Exists")
 
-	# Save out future uploads
-	conf.set("future_uploads", future_uploads)
+	# Save out failed uploads
+	conf.set("failed_uploads", failed_uploads)
 
+
+def process(itr: iter, conf: object):
+	"""
+	Run the functions that upload the files in the iterator and pretty print the results.
+
+	Args:
+		itr: file iterator of song file paths
+		conf: config object from run.py
+	Returns:
+		False if upload aborted.
+	"""
+	readout = upload(itr, conf)
+	if readout:
+		parse_result(readout, conf)
+		return True
+	else:
+		print("Upload cancelled.")
+		return False
