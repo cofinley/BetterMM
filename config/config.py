@@ -3,6 +3,8 @@ import json
 import re
 import datetime
 
+from logs.logger import config_logger
+
 from gmusicapi import Musicmanager
 mm = Musicmanager(debug_logging=False)
 
@@ -19,7 +21,6 @@ class Config:
 	"""
 	Configuration class that gets/sets variables used throughout the utility.
 	"""
-
 	def __init__(self, verbose=False):
 
 		self.verbose = verbose
@@ -46,13 +47,13 @@ class Config:
 		return self.config[var_name]
 
 
-	def set(self, var_name, value):
+	def set(self, var_name: str, value: object) -> None:
 		"""
 		Save new value to key in config in memory and json file.
 
 		Args:
 			var_name: string of config key
-			value: string of new value
+			value: string of new value; list if using "failed_uploads" key
 		"""
 		self.config[var_name] = value
 
@@ -80,6 +81,9 @@ class Config:
 
 		if self.verbose:
 			self.create_date_ranges()
+
+
+	"""Application-specific section"""
 
 
 	def create_config(self):
@@ -171,21 +175,21 @@ class Config:
 				if date_pattern.match(input_date):
 					self.set(key, input_date)
 
-		print("The date range will be reset after the uploading finishes.")
-		print("If you would like custom date ranges next time, run the script with the '-v' or '--verbose' argument\n")
+		config_logger.info("The date range will be reset after the uploading finishes.")
+		config_logger.info("If you would like custom date ranges next time, run the script with the '-v' or '--verbose' argument\n")
 
 
 	def pprint(self):
 		"""
 		Pretty print config variables.
 		"""
-		print("\nConfig:")
-		print("\tWorking directory: {}".format(self.get("dir")))
-		print("\tStart date: {}".format(self.get("start_date")))
-		print("\t\tUnix timestamp: {}".format(self.start_unix_time))
-		print("\tEnd date: {}".format(self.get("end_date")))
-		print("\t\tUnix timestamp: {}".format(self.end_unix_time))
-		print("\tFormats being searched for: {}\n".format(self.get("ext")))
+		config_logger.info("Config:")
+		config_logger.info("\tWorking directory: {}".format(self.get("dir")))
+		config_logger.info("\tStart date: {}".format(self.get("start_date")))
+		config_logger.info("\t\tUnix timestamp: {}".format(self.start_unix_time))
+		config_logger.info("\tEnd date: {}".format(self.get("end_date")))
+		config_logger.info("\t\tUnix timestamp: {}".format(self.end_unix_time))
+		config_logger.info("\tFormats being searched for: {}\n".format(self.get("ext")))
 
 
 	def init_unix_timestamps(self):
@@ -218,6 +222,7 @@ class Config:
 	def from_timestamp(timestamp) -> str:
 		"""
 		Convert from Unix timestamp to YYYY-MM-DD.
+
 		Args:
 			timestamp: float or string of float of Unix timestamp
 

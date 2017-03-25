@@ -1,6 +1,8 @@
 import os
 from gmusicapi import Musicmanager
 
+from logs.logger import mm_logger
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -19,15 +21,23 @@ def upload(itr: iter, conf: object) -> tuple:
 				{'<filepath>': '<new server id>'},               # matched
 				{'<filepath>': '<reason, eg ALREADY_EXISTS>'}    # not uploaded
 			)
+
+		Also returns false if ctrl-c hit during upload process.
 	"""
 	mm = Musicmanager(debug_logging=False)
 
 	oauth_path = conf.get("oauth_file")
 	is_logged_in = mm.login(oauth_credentials=oauth_path)
 	if is_logged_in:
-		print("Uploading (may take awhile)...")
-		result = mm.upload(itr)
-		print("Done.")
+		mm_logger.info("Uploading (may take awhile)...")
+		mm_logger.info("Hold Ctrl-c to abort.")
+		try:
+			result = mm.upload(itr)
+			mm_logger.info("Done.")
+		except KeyboardInterrupt:
+			# If user ctrl-c's out (aborts upload), return False
+			mm_logger.warning("Upload cancelled.")
+			result = False
 		mm.logout()
 		return result
 
@@ -41,43 +51,24 @@ def parse_result(result: tuple, conf: object) -> None:
 		conf: config object from run.py
 	"""
 	failed_uploads = list(conf.get("failed_uploads"))
-	print("Result:")
-	print("\n\tUploaded:")
+	mm_logger.info("Result:")
+	mm_logger.info("\tUploaded:")
 	for uploaded in result[0]:
-		print("\t\t" + uploaded)
-	print("\n\tMatched:")
+		mm_logger.info("\t\t" + uploaded)
+	mm_logger.info("\tMatched:")
 	for matched in result[1]:
-		print("\t\t" + matched)
-	print("\n\tNot uploaded:")
+		mm_logger.info("\t\t" + matched)
+	mm_logger.warning("\tNot uploaded:")
 	for n_uploaded in result[2]:
-		print("\t\t" + n_uploaded)
+		mm_logger.warning("\t\t" + n_uploaded)
 		reason = result[2][n_uploaded]
 		if "ALREADY_EXISTS" not in reason:
 			# Song failed to upload but not because it already existed in google music
 			# stage for next upload
-			print("\t\t\tReason: {}".format(reason))
+			mm_logger.warning("\t\t\tReason: {}".format(reason))
 			failed_uploads.append(n_uploaded)
 		else:
-			print("\t\t\tReason: Already Exists")
+			mm_logger.warning("\t\t\tReason: Already Exists")
 
 	# Save out failed uploads
 	conf.set("failed_uploads", failed_uploads)
-
-
-def process(itr: iter, conf: object):
-	"""
-	Run the functions that upload the files in the iterator and pretty print the results.
-
-	Args:
-		itr: file iterator of song file paths
-		conf: config object from run.py
-	Returns:
-		False if upload aborted.
-	"""
-	readout = upload(itr, conf)
-	if readout:
-		parse_result(readout, conf)
-		return True
-	else:
-		print("Upload cancelled.")
-		return False
