@@ -3,13 +3,16 @@ import os
 import datetime
 
 current_dir = os.path.dirname(os.path.realpath(__file__))
-today = datetime.datetime.today().strftime("%Y-%m-%d")
+today = datetime.datetime.today()
+today_date = today.strftime("%Y-%m-%d")  # YYYY-MM-DD
+today_time = today.strftime("%H:%M")  # i.e. 15:00
 
-log_file = "{}{}{}{}{}.log".format(current_dir,
+log_file = "{}{}{}{}{} {}.log".format(current_dir,
 									os.sep,
 									"log_files",
 									os.sep,
-									today)
+									today_date,
+									today_time)
 
 # Logger that prints to console and file
 # from http://stackoverflow.com/a/9321890

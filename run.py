@@ -42,7 +42,7 @@ else:
 conf = Config(is_verbose)
 
 # Start log file with current time and config settings
-main_logger.info("Current time:", today_time)
+main_logger.info("Current time: {}".format(today_time))
 conf.pprint()
 
 start = conf.start_unix_time
