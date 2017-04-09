@@ -12,6 +12,7 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 today = datetime.datetime.today()
 today_date = today.strftime("%Y-%m-%d")  # YYYY-MM-DD
 today_time = today.strftime("%I:%M %p")  # i.e. 7:00 PM
+today_time_unix = int(today.timestamp())
 
 
 def check_verbosity() -> bool:
@@ -43,6 +44,7 @@ conf = Config(is_verbose)
 
 # Start log file with current time and config settings
 main_logger.info("Current time: {}".format(today_time))
+main_logger.info("Current unix time: {}\n".format(today_time_unix))
 conf.pprint()
 
 start = conf.start_unix_time
@@ -174,7 +176,7 @@ def reset_dates() -> None:
 		end_date => remove the bound
 		Final range: [today, inf)
 	"""
-	conf.set("start_date", today_date)
+	conf.set("start_date", today_time_unix)
 	conf.set("end_date", "")
 
 

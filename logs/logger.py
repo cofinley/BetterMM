@@ -5,7 +5,7 @@ import datetime
 current_dir = os.path.dirname(os.path.realpath(__file__))
 today = datetime.datetime.today()
 today_date = today.strftime("%Y-%m-%d")  # YYYY-MM-DD
-today_time = today.strftime("%H:%M")  # i.e. 15:00
+today_time = today.strftime("%H%M")  # i.e. 1500
 
 log_file = "{}{}{}{}{} {}.log".format(current_dir,
 									os.sep,

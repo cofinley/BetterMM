@@ -185,7 +185,12 @@ class Config:
 		"""
 		config_logger.info("Config:")
 		config_logger.info("\tWorking directory: {}".format(self.get("dir")))
-		config_logger.info("\tStart date: {}".format(self.get("start_date")))
+		start_date = self.get("start_date")
+		if type(start_date) is int:
+			start_date = datetime.datetime.fromtimestamp(start_date).strftime("%Y-%m-%d %I:%M %p")
+			config_logger.info("\tStart date: {}".format(start_date))
+		else:
+			config_logger.info("\tStart date: {}".format(self.get("start_date")))
 		config_logger.info("\t\tUnix timestamp: {}".format(self.start_unix_time))
 		config_logger.info("\tEnd date: {}".format(self.get("end_date")))
 		config_logger.info("\t\tUnix timestamp: {}".format(self.end_unix_time))
@@ -197,7 +202,12 @@ class Config:
 		Get Unix timestamps for date ranges if they exist, otherwise set to None.
 		"""
 		start = self.get("start_date")
-		self.start_unix_time = self.to_timestamp(start) if start else None
+		if type(start) is int:
+			# Last session reset start_date to a full unix timestamp, not just date
+			self.start_unix_time = start
+		else:
+			# Start date just a date in YYYY-MM-DD format
+			self.start_unix_time = self.to_timestamp(start) if start else None
 
 		end = self.get("end_date")
 		self.end_unix_time = self.to_timestamp(end) if end else None
