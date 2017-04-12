@@ -3,6 +3,8 @@
 <!-- TOC -->
 
 - [Background](#background)
+- [User Stories](#user-stories)
+- [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Process](#process)
@@ -22,13 +24,26 @@ BetterMM uses the gmusicapi to provide a command line interface to Google Music 
 
 Google's Music Manager makes for a good background utility, however, the functionality is somewhat limited and those with larger libraries may want to tweak their uploading options. BetterMM uses dates that music files were added by (think recently added) to specify which files will be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reschedule uploads. See [Cross-Platform Warning](#cross-platform-warning) for more on this.
 
+## User Stories
+
+- Google Music Manager wants to upload all my music again.
+- I want to upload a limited subset of my music bounded by date added, not by directory.
+- I want to upload from multiple machines and not worry about hitting Google Music's authorized devices limit.
+
+## Requirements
+
+> __Note:__ This can only work if you have less than 10 devices already authorized in Google Music. If you have 10, you must deauthorize one. You can only deauthorize a device if you haven't deauthorized 4 other devices this year. If this is a problem, try contacting Google support, some have been able to remove this limit by asking.
+
+- Windows
+- Python 3+
+
 ## Installation
 
 1. `git clone https://github.com/cofinley/BetterMM.git`
 2. `cd BetterMM/`
 3. `pip install -r requirements.txt`
 
-- For use in virtualenv, do this before step 3:
+- For use in virtualenv, do this between steps 2 and 3:
     1. For Python 3.3+: python -m venv venv (
         - If Python version below 3.3 (`python --version`):
             1. `pip install virtualenv`
@@ -48,19 +63,19 @@ Use `-v` or `--verbose` flags to specify date ranges later on (no need to on the
 
 This process outlines the first run of the script. Subsequent runs, if not in verbose mode, will not prompt you for music directory or date ranges.
 
-1. Enter in music directory
+1. Enter in full path of music directory
 2. Enter in a date range of music added (if desired)
-    - How far back and how recent files were added to directory
+    - How far back (start date) and how recent files (end date) were added to directory
 3. Follow Google oauth instructions
-4. Program searches for flacs, mp3s
+4. Program searches for flacs, mp3s in music directory
     - Only takes files which are within the given date range
         - If no range given, all files considered
 5. Upload to Google Music
-6. Log saved to logs/log_files/
+6. Log saved to `logs/log_files/`
 
 ## Cross-Platform Warning
 
-At the time of writing this, I have only used BetterMM with Windows. The python function used to get file creation times, [getctime()](https://docs.python.org/3.3/library/os.path.html#os.path.getctime), gets the file _creation_ time in Windows, but only gets the file _modification_ time in Unix systems. The point of BetterMM was to not reupload music files just because of a small, insignificant tag change. Only looking at modification time will reupload music after these tag changes and voids this distinction from Music Manager. There is a Mac workaround which I plan on implementing (testing is another story).
+At the time of writing this, I have only used BetterMM with Windows. The python function used to get file creation times, [getctime()](https://docs.python.org/3.3/library/os.path.html#os.path.getctime), gets the file _creation_ time in Windows, but only gets the file modification time in Unix systems. The point of BetterMM was to not reupload music files just because of a small, insignificant tag change. Only looking at modification time will reupload music after these tag changes and voids this distinction from Music Manager. There is a Mac workaround which I plan on implementing (testing is another story).
 
 ## Status
 
@@ -75,13 +90,13 @@ At the time of writing this, I have only used BetterMM with Windows. The python 
 3. Set trigger to "At log on" or whatever you prefer
 4. Set the action to "Start a program"
     - Program/script: `python.exe`
-        - If using virtualenv, go to `BetterMM/<venv_name>/Scripts/python.exe`
+        - If using virtualenv, browse for `BetterMM/<venv_name>/Scripts/python.exe`
     - Arguments: `run.py`
         - `run.py -v` for setting date ranges every time
-    - Start in: `BetterMM/`
+    - Start in: full path to `BetterMM/`
 
 - You might want to only allow the task to run if a network is available.
-- Allow run on-demand
+- Allow run on-demand.
 
 ### Need to change settings
 
