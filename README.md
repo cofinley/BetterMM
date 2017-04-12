@@ -8,6 +8,9 @@
 - [Process](#process)
 - [Cross-Platform Warning](#cross-platform-warning)
 - [Status](#status)
+- [Helpful Tips](#helpful-tips)
+	- [Auto-run BetterMM on startup](#auto-run-bettermm-on-startup)
+	- [Need to change settings](#need-to-change-settings)
 
 <!-- /TOC -->
 
@@ -62,6 +65,29 @@ At the time of writing this, I have only used BetterMM with Windows. The python 
 ## Status
 
 - April 11, 2017: Mac and Linux currently unsupported. Album art will not upload, a [known issue](https://github.com/simon-weber/gmusicapi/issues/242) in the gmusicapi library.
+
+## Helpful Tips
+
+### Auto-run BetterMM on startup
+
+1. Open Windows Task Scheduler
+2. Create new task
+3. Set trigger to "At log on" or whatever you prefer
+4. Set the action to "Start a program"
+    - Program/script: `python.exe`
+        - If using virtualenv, go to `BetterMM/<venv_name>/Scripts/python.exe`
+    - Arguments: `run.py`
+        - `run.py -v` for setting date ranges every time
+    - Start in: `BetterMM/`
+
+- You might want to only allow the task to run if a network is available.
+- Allow run on-demand
+
+### Need to change settings
+
+- To change dates, just run the script in verbose mode: `python run.py -v`
+- To change music directory, go to `BetterMM/config/` and open `config.json` in a text editor to change the directory.
+- To upload more audio formats, go to the same config file and add a format in `"ext"` like so: `["mp3", "flac", "new_format_here"]`
 
 ---
 
