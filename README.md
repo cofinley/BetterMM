@@ -20,9 +20,9 @@
 
 ## Background
 
-BetterMM uses the gmusicapi to provide a command line interface to Google Music Manager, a tool for uploading your music library to Google Music. gmusicapi is an unofficial Python interface for Google Music.
+BetterMM provides a command line interface to Google Music Manager, a utility for uploading your music library to Google Music. The difference is that BetterMM solves [issues](#user-stories) that users may run into when using Google's utility. This is all possible due to [gmusicapi](https://github.com/simon-weber/gmusicapi), an unofficial Python interface for Google Music.
 
-Google's Music Manager makes for a good background utility, however, the functionality is somewhat limited and those with larger libraries may want to tweak their uploading options. BetterMM uses dates that music files were added by (think recently added) to specify which files will be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reschedule uploads. See [Cross-Platform Warning](#cross-platform-warning) for more on this.
+BetterMM is aimed at those with larger libraries who may want to tweak their uploading options. The program uses user-dictated dates that music files were added by (think recently added) to specify which files should be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reschedule uploads.
 
 ## User Stories
 
@@ -34,7 +34,7 @@ Google's Music Manager makes for a good background utility, however, the functio
 
 > __Note:__ This can only work if you have less than 10 devices already authorized in Google Music. If you have 10, you must deauthorize one. You can only deauthorize a device if you haven't deauthorized 4 other devices this year. If this is a problem, try contacting Google support, some have been able to remove this limit by asking.
 
-- Windows
+- Windows (see [note](#cross-platform-warning) about other platforms)
 - Python 3+
 
 ## Installation
