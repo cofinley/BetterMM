@@ -7,3 +7,4 @@ config/__pycache__/
 /config/oauth.cred
 /venv/
 /logs/log_files/
+*.swp

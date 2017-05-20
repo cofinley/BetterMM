@@ -22,7 +22,7 @@
 
 BetterMM provides a command line interface to Google Music Manager, a utility for uploading your music library to Google Music. The difference is that BetterMM solves [issues](#user-stories) that users may run into when using Google's utility. This is all possible due to [gmusicapi](https://github.com/simon-weber/gmusicapi), an unofficial Python interface for Google Music.
 
-BetterMM is aimed at those with larger libraries who may want to tweak their uploading options. The program uses user-dictated dates that music files were added by (think recently added) to specify which files should be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reschedule uploads.
+BetterMM is aimed at those with larger libraries who may want to tweak their uploading options. The program uses user-dictated dates that music files were added by (think recently added) to specify which files should be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reupload files.
 
 ## User Stories
 
@@ -32,7 +32,7 @@ BetterMM is aimed at those with larger libraries who may want to tweak their upl
 
 ## Requirements
 
-> __Note:__ This can only work if you have less than 10 devices already authorized in Google Music. If you have 10, you must deauthorize one. You can only deauthorize a device if you haven't deauthorized 4 other devices this year. If this is a problem, try contacting Google support, some have been able to remove this limit by asking.
+> __Note:__ This can only work if you have less than 10 devices already authorized in Google Music. If you have 10, you must deauthorize one. You can only deauthorize a device if you haven't deauthorized 4 other devices this year. If this is a problem, try contacting Google customer support, people have been able to remove this limit simply by asking.
 
 - Windows (see [note](#cross-platform-warning) about other platforms)
 - Python 3+
@@ -57,7 +57,7 @@ BetterMM is aimed at those with larger libraries who may want to tweak their upl
 
 If using virtualenv, activate first: `venv\Scripts\activate`.
 
-Use `-v` or `--verbose` flags to specify date ranges later on (no need to on the first run).
+Use `-v` or `--verbose` flags to specify date ranges later on (automatic on the first run).
 
 ## Process
 
