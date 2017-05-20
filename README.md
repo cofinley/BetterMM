@@ -24,6 +24,8 @@ BetterMM provides a command line interface to Google Music Manager, a utility fo
 
 BetterMM is aimed at those with larger libraries who may want to tweak their uploading options. The program uses user-dictated dates that music files were added by (think recently added) to specify which files should be uploaded. It does not use modification times. This is another big difference between BetterMM and Music Manager: minor tag changes do not reupload files.
 
+My personal writeup on the matter can be found [here](https://charcoalbin.com/BetterMM.html).
+
 ## User Stories
 
 - Google Music Manager wants to upload all my music again.
