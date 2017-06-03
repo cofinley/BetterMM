@@ -51,13 +51,17 @@ def parse_result(result: tuple, conf: object) -> None:
 		conf: config object from run.py
 	"""
 	failed_uploads = list(conf.get("failed_uploads"))
+
 	mm_logger.info("Result:")
+
 	mm_logger.info("\tUploaded:")
 	for uploaded in result[0]:
 		mm_logger.info("\t\t" + uploaded)
+
 	mm_logger.info("\tMatched:")
 	for matched in result[1]:
 		mm_logger.info("\t\t" + matched)
+
 	mm_logger.warning("\tNot uploaded:")
 	for n_uploaded in result[2]:
 		mm_logger.warning("\t\t" + n_uploaded)

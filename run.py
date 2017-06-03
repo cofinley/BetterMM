@@ -1,8 +1,8 @@
 import os
-import glob
 import datetime
 import argparse
 import time
+from typing import List
 
 import music_manager
 from config.config import Config
@@ -51,80 +51,63 @@ start = conf.start_unix_time
 end = conf.end_unix_time
 
 
-def check_date(f: object) -> bool:
-	"""
-	Function used to filter files by time range.
-	Time is based on when files were copied to dir
+def check_date(filepath: str) -> bool:
 
-	Args:
-		f: file from iterator
+	# Returns True if file creation time falls within date ranges
 
-	Returns:
-		True if file falls within date ranges
-	"""
 	if start and end:
 		# Range: [start, end)
-		return start <= os.path.getctime(f) < end
+		return start <= os.path.getctime(filepath) < end
 	else:
 		if start and not end:
 			# Range: [start, inf)
-			return start <= os.path.getctime(f)
+			return start <= os.path.getctime(filepath)
 		elif end and not start:
 			# Range: (inf, end)
-			return os.path.getctime(f) < end
+			return os.path.getctime(filepath) < end
 
 
-def get_new_files(music_dir: str, ext: str) -> iter:
-	"""
-	Find all files with given extension in the given directory that were added
-	in the configured date range.
+def get_new_files(filepath: str, ext: str, files: List[str] = []) -> List[str]:
 
-	Args:
-		music_dir: absolute file path of music directory
-		ext: file extension to look for (mp3, flac)
+	ext_text = "." + ext
 
-	Returns:
-		new_itr: iterator of files that matched the parameters
-	"""
-	# recursive argument only appears in python 3.5+
-	files = glob.iglob("{}**{}*.{}".format(music_dir, os.sep, ext), recursive=True)
+	with os.scandir(filepath) as itr:
+		for entry in itr:
+			if entry.is_file() and entry.name.endswith(ext_text) and check_date(entry.path):
+				files.append(entry.path)
+			elif entry.is_dir():
+				get_new_files(os.path.join(filepath, entry.name), ext, files)
 
-	new_files = filter(check_date, files)
-	# Create duplicate iterators. One for upload, one for showing to user
-	new_itr = list(new_files)
-	show_itr = new_itr
+	return files
 
-	if len(show_itr) > 0:
-		main_logger.info("**************************************")
-		main_logger.info("These {} files will be uploaded:".format(len(show_itr)))
-		for track in show_itr:
-			main_logger.info(track)
-		# main_logger.info(*show_itr, sep="\n")
-		main_logger.info("**************************************\n")
-		return new_itr
-	else:
-		return None
+
+def log_files(files: List[str]) -> None:
+
+	main_logger.info("**************************************")
+	main_logger.info("These {} files will be uploaded:".format(len(files)))
+	for track in files:
+		main_logger.info(track)
+	main_logger.info("**************************************\n")
 
 
 def upload_new() -> bool:
 	"""
-	Find and upload new files.
-	Cycle through given file extensions and upload the results.
+	Find and upload new files
 
 	Returns:
 		False if process cancelled. True if process ran fine.
 	"""
-	# upload_success bool used to determine if safe to reset date ranges
 	music_dir = conf.get("dir")
 	exts = conf.get("ext")
 	for idx, ext in enumerate(exts):
 		main_logger.info("({}/{}) Checking for {}'s...".format(idx + 1, len(exts), ext))
 		main_logger.info("\tFile search pattern: {}**{}*.{}\n".format(music_dir, os.sep, ext))
-		new_file_itr = get_new_files(music_dir, ext)
-		# Check if new files were found
-		if new_file_itr:
-			# Files found, upload
-			upload_result = music_manager.upload(new_file_itr, conf)
+
+		new_files = get_new_files(music_dir, ext)
+
+		if new_files:
+			log_files(new_files)
+			upload_result = music_manager.upload(new_files, conf)
 			if upload_result:
 				# Upload succeeded, print out results
 				music_manager.parse_result(upload_result, conf)
@@ -138,25 +121,11 @@ def upload_new() -> bool:
 	return True
 
 
-def get_failed_uploads() -> iter:
-	"""
-	Get failed uploads from last session.
-
-	Returns:
-		failed_uploads: iterator with file paths of songs
-		False if failed_uploads empty
-	"""
-	failed_uploads = conf.get("failed_uploads")
-	if len(failed_uploads) == 0:
-		return False
-	return failed_uploads
-
-
 def retry_old() -> None:
 	"""
 	Upload failed songs from last time if there are any.
 	"""
-	retry_songs = get_failed_uploads()
+	retry_songs = conf.get("failed_uploads")
 	if retry_songs:
 		main_logger.info("Retrying songs that failed last time...")
 		retry_result = music_manager.upload(retry_songs, conf)
@@ -181,9 +150,6 @@ def reset_dates() -> None:
 
 
 def main() -> None:
-	"""
-	Main logic.
-	"""
 	script_start = time.time()
 
 	success = upload_new()

@@ -34,27 +34,13 @@ class Config:
 		self.init_unix_timestamps()
 
 
-	def get(self, var_name: str) -> str:
-		"""
-		Get config setting from memory.
+	def get(self, var_name: str) -> object:
 
-		Args:
-			var_name: string of key to get from config
-
-		Returns:
-			string of value of key from config
-		"""
 		return self.config[var_name]
 
 
 	def set(self, var_name: str, value: object) -> None:
-		"""
-		Save new value to key in config in memory and json file.
 
-		Args:
-			var_name: string of config key
-			value: string of new value; list if using "failed_uploads" key
-		"""
 		self.config[var_name] = value
 
 		with open(json_file, "w") as output_file:
@@ -64,10 +50,6 @@ class Config:
 	def load_config(self):
 		"""
 		Load json config into memory if the file exists. If not, create one.
-
-			Check for Google Oauth too.
-			Bring human-readable date ranges from config into class member variable as Unix timestamps.
-			Void any date endpoints not used.
 		"""
 		# Check if config file exists
 		if not os.path.isfile(json_file):
@@ -217,12 +199,6 @@ class Config:
 	def to_timestamp(date: str) -> float:
 		"""
 		Convert YYYY-MM-DD to Unix timestamp.
-
-		Args:
-			date: string in format of YYYY-MM-DD
-
-		Returns:
-			timestamp: Unix timestamp float
 		"""
 		timestamp = datetime.datetime.strptime(date, date_format).timestamp()
 		return timestamp
@@ -232,12 +208,6 @@ class Config:
 	def from_timestamp(timestamp) -> str:
 		"""
 		Convert from Unix timestamp to YYYY-MM-DD.
-
-		Args:
-			timestamp: float or string of float of Unix timestamp
-
-		Returns:
-			str_date: string in date format of YYYY-MM-DD
 		"""
 		str_date = datetime.datetime.fromtimestamp(float(timestamp)).strftime("%Y-%m-%d")
 		return str_date
