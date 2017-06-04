@@ -67,17 +67,14 @@ def check_date(filepath: str) -> bool:
 			return os.path.getctime(filepath) < end
 
 
-def get_new_files(filepath: str, ext: str, files: List[str] = []) -> List[str]:
-
-	ext_text = "." + ext
+def get_new_files(filepath: str, exts: tuple, files: List[str] = []) -> List[str]:
 
 	with os.scandir(filepath) as itr:
 		for entry in itr:
-			if entry.is_file() and entry.name.endswith(ext_text) and check_date(entry.path):
-				files.append(entry.path)
-			elif entry.is_dir():
-				get_new_files(os.path.join(filepath, entry.name), ext, files)
-
+			if entry.is_dir():
+				get_new_files(os.path.join(filepath, entry.name), exts, files)
+			elif entry.name.endswith(exts) and check_date(entry.path):
+					files.append(entry.path)
 	return files
 
 
@@ -98,25 +95,23 @@ def upload_new() -> bool:
 		False if process cancelled. True if process ran fine.
 	"""
 	music_dir = conf.get("dir")
-	exts = conf.get("ext")
-	for idx, ext in enumerate(exts):
-		main_logger.info("({}/{}) Checking for {}'s...".format(idx + 1, len(exts), ext))
-		main_logger.info("\tFile search pattern: {}**{}*.{}\n".format(music_dir, os.sep, ext))
+	exts = tuple(conf.get("ext"))
+	main_logger.info("Checking for {}'s...".format(exts))
 
-		new_files = get_new_files(music_dir, ext)
+	new_files = get_new_files(music_dir, exts)
 
-		if new_files:
-			log_files(new_files)
-			upload_result = music_manager.upload(new_files, conf)
-			if upload_result:
-				# Upload succeeded, print out results
-				music_manager.parse_result(upload_result, conf)
-			else:
-				# Upload cancelled
-				return False
+	if new_files:
+		log_files(new_files)
+		upload_result = music_manager.upload(new_files, conf)
+		if upload_result:
+			# Upload succeeded, print out results
+			music_manager.parse_result(upload_result, conf)
 		else:
-			# No new files found
-			main_logger.info("\tNo new files found.\n")
+			# Upload cancelled
+			return False
+	else:
+		# No new files found
+		main_logger.info("\tNo new files found.\n")
 
 	return True
 
